@@ -1,0 +1,110 @@
+name: sentry-error-trends
+display_name: Sentry Error Trends
+description: >-
+  On every Sentry trend it pulls the stack trace, searches the web
+  for similar bugs, and posts a starting theory in Slack — before
+  you've opened your laptop. @mention it for product-impact
+  follow-ups.
+category: product
+
+story:
+  hero: "When errors spike, it already has the hypothesis."
+  subheadline: >-
+    On every Sentry trend it pulls the stack trace, searches the
+    web for similar bugs, and posts a starting theory before you've
+    opened your laptop.
+  steps:
+    - role: trigger
+      title: "A Sentry alert fires."
+      body: >-
+        New issue, regression, or alert rule — the webhook lands
+        and the agent picks it up immediately. No dashboard to
+        refresh.
+      catalog: sentry-webhook
+    - role: action
+      title: "It pulls the trace and searches the web."
+      body: >-
+        Enriches the issue with stack trace and affected-user count,
+        then queries the web for similar bugs already solved.
+      catalog: sentry-mcp
+    - role: outcome
+      title: "A starting hypothesis posted in Slack."
+      body: >-
+        Who's impacted, likely cause, and up to three cited sources
+        — marked as a hypothesis, linked to the Sentry issue.
+      catalog: slack
+
+connectors:
+  - catalog: sentry-mcp
+    description: >-
+      The Sentry MCP server, authenticated with an internal
+      integration token. The agent uses it to pull issue details,
+      stack traces, breadcrumbs, recent events, release context,
+      and affected-user counts. Resolving or commenting on issues
+      only happens after a Slack user explicitly confirms.
+    slots:
+      SENTRY_ACCESS_TOKEN:
+        description: >-
+          Sentry internal integration token with `event:read`,
+          `project:read`, and `org:read` scopes. Create one at
+          Sentry → Settings → Developer Settings → New Internal
+          Integration.
+    ui:
+      headline: "Plug in your Sentry token."
+      blurb: >-
+        Create a Sentry internal integration with read access to
+        events and projects, then paste the token here. The same
+        integration's client secret will be used to verify webhook
+        signatures.
+      done_note: "Sentry connected"
+  - catalog: parallel-search-mcp
+    description: >-
+      Parallel search, the supplementary deep-research tool. After
+      pulling the Sentry issue context, the agent runs targeted
+      Parallel queries against the error message and framework to
+      find similar bugs in GitHub issues, Stack Overflow, and
+      engineering blog posts. No API key required.
+    ui:
+      headline: "Add Parallel for similar-bug search."
+      blurb: >-
+        Parallel handles the web-search half of every hypothesis —
+        the GitHub issues, Stack Overflow answers, and blog
+        post-mortems where someone else already solved this. No
+        key required.
+      done_note: "Parallel connected"
+
+channels:
+  - catalog: slack
+    description: >-
+      The agent gets its own Slack bot. Invite it to whichever
+      channels engineering, on-call, or product use to track Sentry
+      — it posts trend hypotheses to every channel it's a member
+      of, and replies in-thread when @mentioned for follow-ups.
+    ui:
+      headline: "Give Sentry Error Trends a Slack bot."
+      blurb: >-
+        The agent posts a starting hypothesis to every channel you
+        invite it to, every time Sentry fires a webhook. Invite it
+        to one focused channel, or several — whatever matches how
+        your team works.
+      done_note: "Bot ready — invite it to a channel"
+  - catalog: sentry-webhook
+    description: >-
+      The real-time trigger. Sentry fires this webhook on issue
+      events (new issue, regression, alert rule). The channel
+      verifies the signature with the integration's client secret
+      and hands the payload to the agent for enrichment, web
+      search, and a hypothesis post.
+    slot_descriptions:
+      SENTRY_CLIENT_SECRET: >-
+        The client secret of your Sentry internal integration —
+        used to verify the `Sentry-Hook-Signature` HMAC-SHA256
+        header on incoming webhooks. Must match the value Sentry
+        shows for the same integration.
+    ui:
+      headline: "Wire up the Sentry webhook."
+      blurb: >-
+        After deploy, you'll get a webhook URL. Paste it into your
+        Sentry internal integration's Webhook URL field, then copy
+        that integration's Client Secret here so signatures verify.
+      done_note: "Webhook ready — paste the URL into Sentry"
