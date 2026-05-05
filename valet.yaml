@@ -7,6 +7,9 @@ description: >-
   follow-ups.
 category: product
 
+example:
+  prompt: "What's behind the spike in 5xx today?"
+
 story:
   hero: "When errors spike, it already has the hypothesis."
   subheadline: >-
