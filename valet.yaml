@@ -45,13 +45,12 @@ connectors:
       stack traces, breadcrumbs, recent events, release context,
       and affected-user counts. Resolving or commenting on issues
       only happens after a Slack user explicitly confirms.
-    slots:
-      SENTRY_ACCESS_TOKEN:
-        description: >-
-          Sentry internal integration token with `event:read`,
-          `project:read`, and `org:read` scopes. Create one at
-          Sentry → Settings → Developer Settings → New Internal
-          Integration.
+    slot_descriptions:
+      SENTRY_ACCESS_TOKEN: >-
+        Sentry internal integration token with `event:read`,
+        `project:read`, and `org:read` scopes. Create one at
+        Sentry → Settings → Developer Settings → New Internal
+        Integration.
     ui:
       headline: "Plug in your Sentry token."
       blurb: >-
